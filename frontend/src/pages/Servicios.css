@@ -1,0 +1,39 @@
+.serv-razones {
+  background: var(--aapos-orange);
+  color: var(--aapos-white);
+  padding: 40px 0;
+}
+
+.serv-razones-title {
+  font-family: var(--font-heading);
+  color: var(--aapos-dark);
+  font-size: 1.8rem;
+  margin: 0 0 8px;
+}
+
+.serv-lista {
+  padding: 48px 24px;
+}
+
+.serv-lista-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 24px;
+  margin-top: 24px;
+}
+
+.serv-item {
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  padding: 20px;
+}
+
+.serv-item h3 {
+  color: var(--aapos-blue-dark);
+  margin: 0 0 10px;
+}
+
+.serv-item p {
+  line-height: 1.5;
+  margin: 0;
+}

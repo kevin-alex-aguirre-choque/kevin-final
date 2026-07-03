@@ -1,0 +1,58 @@
+.razon-card {
+  display: flex;
+  align-items: center;
+  gap: 3rem;
+  margin-bottom: 4rem;
+}
+
+.razon-card.reverse {
+  flex-direction: row-reverse;
+}
+
+.razon-imagen {
+  flex: 1;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+.razon-imagen img {
+  width: 100%;
+  height: 350px;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.3s;
+}
+
+.razon-imagen img:hover {
+  transform: scale(1.05);
+}
+
+.razon-contenido {
+  flex: 1;
+  color: white;
+}
+
+.razon-contenido h3 {
+  font-size: 2rem;
+  margin-bottom: 1rem;
+  color: white;
+  font-weight: bold;
+}
+
+.razon-contenido p {
+  font-size: 1.1rem;
+  line-height: 1.6;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .razon-card,
+  .razon-card.reverse {
+    flex-direction: column;
+  }
+  
+  .razon-imagen img {
+    height: 250px;
+  }
+}

@@ -1,0 +1,58 @@
+:root {
+  --aapos-blue: #1e88c7;
+  --aapos-blue-dark: #106a9e;
+  --aapos-orange: #ef7d1f;
+  --aapos-dark: #2b2b2b;
+  --aapos-dark-darker: #1c1c1c;
+  --aapos-white: #ffffff;
+  --aapos-gray-text: #333333;
+  --font-heading: 'Georgia', 'Times New Roman', serif;
+  --font-body: 'Segoe UI', Arial, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  font-family: var(--font-body);
+  color: var(--aapos-gray-text);
+  scroll-behavior: smooth;
+}
+
+#root {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+img {
+  max-width: 100%;
+  display: block;
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+button {
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.container {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+.section-title {
+  font-family: var(--font-heading);
+  font-weight: bold;
+  font-size: 2rem;
+  margin-bottom: 8px;
+}
