@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import './Contactos.css';
 
-const API_URL = 'http://localhost:8080/api';
+const API_URL = 'https://aapos-api-aguirre-ch.onrender.com/api';
 
 function Contactos() {
   const [formData, setFormData] = useState({
@@ -13,24 +13,9 @@ function Contactos() {
     descripcion: ''
   });
 
-  const [loading, setLoading] = useState(false);
   const [mensaje, setMensaje] = useState('');
-  const [reclamosGuardados, setReclamosGuardados] = useState([]);
-
-  // Cargar reclamos al iniciar
-  useEffect(() => {
-    cargarReclamos();
-  }, []);
-
-  const cargarReclamos = async () => {
-    try {
-      const res = await fetch(`${API_URL}/reclamos`);
-      const datos = await res.json();
-      setReclamosGuardados(datos);
-    } catch (error) {
-      console.error('Error al cargar reclamos:', error);
-    }
-  };
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
     setFormData({
@@ -41,91 +26,83 @@ function Contactos() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
     setMensaje('');
+    setError('');
+    setLoading(true);
 
     try {
-      // 1. Buscar o crear cliente
-      const resClientes = await fetch(`${API_URL}/clientes`);
-      const clientes = await resClientes.json();
-      let clienteExistente = clientes.find(c => c.ci === formData.ci);
+      console.log(' Paso 1: Creando cliente...');
+      
+      // PASO 1: Crear cliente
+      const resCliente = await fetch(`${API_URL}/clientes`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          nombre: formData.nombre,
+          ci: formData.ci,
+          telefono: formData.telefono,
+          direccion: formData.direccion
+        })
+      });
 
-      let idCliente;
-
-      if (clienteExistente) {
-        idCliente = clienteExistente.idCliente;
-      } else {
-        const resNuevoCliente = await fetch(`${API_URL}/clientes`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            nombre: formData.nombre,
-            ci: formData.ci,
-            telefono: formData.telefono,
-            direccion: formData.direccion
-          })
-        });
-
-        if (!resNuevoCliente.ok) throw new Error('Error al registrar cliente');
-
-        const clienteCreado = await resNuevoCliente.json();
-        idCliente = clienteCreado.idCliente;
+      if (!resCliente.ok) {
+        const errText = await resCliente.text();
+        throw new Error('Error al crear cliente: ' + errText);
       }
 
-      // 2. Crear reclamo
+      const cliente = await resCliente.json();
+      console.log(' Cliente creado:', cliente);
+      console.log(' ID del cliente:', cliente.idCliente);
+
+      // PASO 2: Crear reclamo
+      console.log(' Paso 2: Creando reclamo...');
+      
       const resReclamo = await fetch(`${API_URL}/reclamos`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           tipo: formData.tipoReclamo,
           descripcion: formData.descripcion,
-          cliente: { idCliente: idCliente }
+          cliente: { idCliente: cliente.idCliente }
         })
       });
 
-      if (!resReclamo.ok) throw new Error('Error al crear el reclamo');
+      if (!resReclamo.ok) {
+        const errText = await resReclamo.text();
+        throw new Error('Error al crear reclamo: ' + errText);
+      }
 
-      setMensaje('✅ Reclamo registrado exitosamente en la base de datos');
+      const reclamo = await resReclamo.json();
+      console.log(' Reclamo creado:', reclamo);
+
+      setMensaje(' ¡Datos guardados en la base de datos! Revisa Swagger');
       
       // Limpiar formulario
       setFormData({
-        nombre: '', ci: '', telefono: '', direccion: '',
-        tipoReclamo: '', descripcion: ''
+        nombre: '',
+        ci: '',
+        telefono: '',
+        direccion: '',
+        tipoReclamo: '',
+        descripcion: ''
       });
 
-      // Recargar lista de reclamos
-      cargarReclamos();
-
-    } catch (error) {
-      setMensaje('❌ Error: ' + error.message);
+    } catch (err) {
+      console.error(' Error completo:', err);
+      setError(' ' + err.message);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="contactos-container">
-      <h1>Contactos</h1>
+    <div className="contactos-page">
+      <h1>📝 Formulario de Reclamo</h1>
 
-      {/* Información */}
-      <div className="info-card">
-        <p><strong>Horarios:</strong> Lunes a viernes de 8:00 a 12:00 y de 14:00 a 18:00</p>
-        <p><strong>Email:</strong> aapos@aapos.com.bo</p>
-        <p><strong>Facebook:</strong> AAPOSOFICIAL</p>
-        <p><strong>Ciudad:</strong> Potosí, Bolivia</p>
-      </div>
+      {mensaje && <div className="alert success">{mensaje}</div>}
+      {error && <div className="alert error">{error}</div>}
 
-      {/* Mensaje */}
-      {mensaje && (
-        <div className={`alert ${mensaje.includes('✅') ? 'success' : 'error'}`}>
-          {mensaje}
-        </div>
-      )}
-
-      {/* Formulario */}
       <form onSubmit={handleSubmit} className="form-contacto">
-        <h2>📝 Formulario de Reclamo</h2>
-        
         <div className="form-group">
           <label>Nombre completo</label>
           <input
@@ -179,7 +156,7 @@ function Contactos() {
             name="tipoReclamo"
             value={formData.tipoReclamo}
             onChange={handleChange}
-            placeholder="Ej: Fuga de agua, Facturación..."
+            placeholder="Ej: Fuga de agua"
             required
           />
         </div>
@@ -190,50 +167,28 @@ function Contactos() {
             name="descripcion"
             value={formData.descripcion}
             onChange={handleChange}
-            placeholder="Describe tu reclamo..."
             rows="5"
+            placeholder="Describe tu reclamo..."
             required
           />
         </div>
 
         <button type="submit" disabled={loading} className="btn-submit">
-          {loading ? '💾 Guardando...' : '📤 Enviar Reclamo'}
+          {loading ? '⏳ Guardando...' : '💾 Guardar en Base de Datos'}
         </button>
       </form>
 
-      {/* Lista de reclamos guardados */}
-      <div className="reclamos-lista">
-        <h2>📋 Reclamos Registrados en la Base de Datos</h2>
-        {reclamosGuardados.length === 0 ? (
-          <p>No hay reclamos registrados aún</p>
-        ) : (
-          <table className="tabla-reclamos">
-            <thead>
-              <tr>
-                <th>ID</th>
-                <th>Cliente</th>
-                <th>Tipo</th>
-                <th>Descripción</th>
-                <th>Estado</th>
-              </tr>
-            </thead>
-            <tbody>
-              {reclamosGuardados.map((reclamo) => (
-                <tr key={reclamo.idReclamo}>
-                  <td>{reclamo.idReclamo}</td>
-                  <td>{reclamo.cliente?.nombre || 'N/A'}</td>
-                  <td>{reclamo.tipo}</td>
-                  <td>{reclamo.descripcion}</td>
-                  <td>
-                    <span className={`estado ${reclamo.estado?.toLowerCase()}`}>
-                      {reclamo.estado}
-                    </span>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
+      <div className="swagger-info">
+        <h3>🔍 Verificar en Swagger</h3>
+        <p>Después de guardar, abre:</p>
+        <a href="http://localhost:8080/swagger-ui/index.html" target="_blank" rel="noopener noreferrer">
+          http://localhost:8080/swagger-ui/index.html
+        </a>
+        <p>Y prueba:</p>
+        <ul>
+          <li><code>GET /api/clientes</code> → Ver cliente creado</li>
+          <li><code>GET /api/reclamos</code> → Ver reclamo creado</li>
+        </ul>
       </div>
     </div>
   );
